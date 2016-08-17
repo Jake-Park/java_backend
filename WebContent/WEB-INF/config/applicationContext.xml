@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.2.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-4.0.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.0.xsd">
+	
+	<!-- <context:property-placeholder location="classpath:prop.properties" /> -->
+	<context:component-scan base-package="com.sydop" />
+	<mvc:annotation-driven enableMatrixVariables="true"/>
+	<task:annotation-driven />
+
+	
+	<bean class= "org.springframework.web.servlet.view.ContentNegotiatingViewResolver">
+		<property name="defaultViews">
+			<list>
+				<ref bean="jsonView"/>
+			</list>
+		</property>
+	</bean>
+	
+	<bean id="jsonView"	class= "org.springframework.web.servlet.view.json.MappingJacksonJsonView">
+		<property name="prettyPrint" value="true"/>
+	</bean>
+		
+	<!--  -->
+    <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource"
+        destroy-method="close">
+        <property name="driverClassName" value="com.mysql.jdbc.Driver" />
+        <property name="url"
+            value="jdbc:mysql://localhost/ace" />
+        <property name="username" value="root" />
+        <property name="password" value="sd1377" />
+    </bean>
+    
+    
+    <!-- Hibernate 4 SessionFactory Bean definition -->
+    <bean id="hibernate4AnnotatedSessionFactory"
+        class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">
+        <property name="dataSource" ref="dataSource" />
+        <property name="annotatedClasses">
+            <list>
+                <value>com.sydop.otp.model.OtpUser</value>
+                <value>com.sydop.otp.model.OtpResult</value>
+            </list>
+        </property> 
+        <property name="hibernateProperties">
+            <props>
+                <prop key="hibernate.dialect">org.hibernate.dialect.MySQLDialect</prop>    
+                <prop key="hibernate.show_sql">true</prop>           
+            </props>
+        </property>
+<!--     <property name="configurationClass" value="org.hibernate.cfg.AnnotationConfigurationWithWildcard"/>
+    <property name="configLocation" value="classpath:hibernate.cfg.xml"/>      -->   
+    </bean>    
+    
+<!--     <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+    	<property name="basePackage" value="com.ace.dao" />
+    	<property name="annotationClass" value="org.springframework.stereotype.Repository" />
+    </bean> -->
+    
+    <bean id="transactionManager" class="org.springframework.orm.hibernate4.HibernateTransactionManager">
+        <property name="sessionFactory" ref="hibernate4AnnotatedSessionFactory" />
+    </bean>
+    
+    <tx:annotation-driven transaction-manager="transactionManager"/>
+    
+
+	
+<!-- 	<bean id= "messageSource" class="org.springframework.context.support.ResourceBundleMessageSource">
+   		<property name="basename" value="message/messages"/> 
+	</bean>
+	
+	<bean id="validator" class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean">
+		<property name="validationMessageSource" ref="messageSource"/>
+	</bean>
+ -->	
+	<bean id="multipartResolver"  class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+	  <property name="maxUploadSize" value="10240000"/>
+	</bean>
+	
+	<bean id="jsonConverter" class="org.springframework.http.converter.json.MappingJacksonHttpMessageConverter">
+        <property name="prefixJson" value="false"/>
+        <property name="supportedMediaTypes" value="application/json"/>
+    </bean>
+    
+    <bean id="stringHttpConverter" class="org.springframework.http.converter.StringHttpMessageConverter">
+        <property name="supportedMediaTypes" value = "text/plain;charset=UTF-8" />
+    </bean>    
+    
+	<bean class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter">
+	    <property name="messageConverters">
+	        <list>
+	            <ref bean="jsonConverter"/>
+	            <ref bean="stringHttpConverter"/>
+	        </list>
+	    </property>
+	</bean>    
+	
+
+     <!-- import configFile  -->     
+     <import resource="classpath:servlet-config.xml"/>
+<!-- <import resource="classpath:config/security-config.xml"/> -->
+</beans>
